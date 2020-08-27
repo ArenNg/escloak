@@ -1,0 +1,21 @@
+{
+    "name": "ArenNg/escloak",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Aren Ng",
+            "email": "aren.ng@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=7.0",
+        "topthink/think-cache": "dev-master"
+    },
+    "autoload": {
+        "psr-4": {
+          "ArenNg\\": "src/"
+        }
+    }
+}
