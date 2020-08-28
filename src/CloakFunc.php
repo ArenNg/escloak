@@ -1,12 +1,12 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: ArenNg
+ * User: Gztango
  * Date: 2017/11/6
  * Time: 21:39
  */
 
-namespace ArenNg; 
+namespace Gztango;
 
 class CloakFunc
 {

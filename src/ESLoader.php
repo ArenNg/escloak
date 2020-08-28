@@ -1,5 +1,5 @@
 <?php
-namespace ArenNg;
+namespace Gztango;
 
 use think\Cache;
 

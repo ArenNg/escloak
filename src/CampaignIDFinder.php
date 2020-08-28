@@ -1,6 +1,6 @@
 <?php
 
-namespace ArenNg; 
+namespace Gztango;
 
 class CampaignIDFinder
 {
