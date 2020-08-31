@@ -19,7 +19,8 @@ class Campaign
 
     private function load_campaign()
     {
-        $cache = new FilesystemCache('/runtime/cache/escloak/');
+        $dir = str_replace('\\','/',realpath(dirname(__FILE__).'/'));
+        $cache = new FilesystemCache($dir.'/runtime/cache/escloak/');
 
         $campaignCacheData = $cache->fetch('escloak_campaign_'.$this->campaign_id);
         if($campaignCacheData){
