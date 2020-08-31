@@ -17,10 +17,17 @@ class Campaign
         $this->load_campaign();
     }
 
+    private function checkDir($dir){
+        if(!dir($dir)){
+            mkdir($dir,0777);
+        }
+    }
+
     private function load_campaign()
     {
-        $dir = str_replace('\\','/',realpath(dirname(__FILE__).'/'));
-        $cache = new FilesystemCache($dir.'/runtime/cache/escloak/');
+        $dir = $_SERVER['DOCUMENT_ROOT'].'/runtime/cache/escloak/';
+        $this->checkDir($dir);
+        $cache = new FilesystemCache($dir);
 
         $campaignCacheData = $cache->fetch('escloak_campaign_'.$this->campaign_id);
         if($campaignCacheData){
