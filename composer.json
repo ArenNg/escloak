@@ -8,7 +8,7 @@
             "email": "aren.ng@gmail.com"
         }
     ],
-    "minimum-stability": "1.0.0",
+    "minimum-stability": "dev",
     "require": {
         "php": ">=7.1",
         "topthink/think-cache": "dev-master"
