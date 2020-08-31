@@ -15,7 +15,7 @@
     },
     "autoload": {
         "psr-4": {
-          "ArenNg\\": "src/"
+          "Gztango\\": "src/"
         }
     }
 }
