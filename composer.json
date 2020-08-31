@@ -10,7 +10,7 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "php": ">=7.1",
+        "php": ">=6.5",
         "doctrine/cache": "1.6.2"
     },
     "autoload": {
