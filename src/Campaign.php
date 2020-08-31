@@ -1,6 +1,8 @@
 <?php
 namespace Gztango;
-use think\Cache;
+
+use Doctrine\Common\Cache\FilesystemCache;
+
 class Campaign
 {
     private $properties;
@@ -17,14 +19,16 @@ class Campaign
 
     private function load_campaign()
     {
-        $campaignCacheData = Cache::get('escloak_campaign_'.$this->campaign_id);
+        $cache = new FilesystemCache('/runtime/cache/escloak/');
+
+        $campaignCacheData = $cache->fetch('escloak_campaign_'.$this->campaign_id);
         if($campaignCacheData){
             $campaignData = unserialize($campaignCacheData);
         }else{
             $campaignApiData = $this->fetch_campaign_data_from_server();
             $campaignData = json_decode($campaignApiData,true);
             $campaignCacheData = serialize($campaignData);
-            Cache::set('escloak_campaign_'.$this->campaign_id,$campaignCacheData);
+            $cache->save('escloak_campaign_'.$this->campaign_id,$campaignCacheData);
         }
 //        var_dump($campaignData);exit;
         $this->properties = $campaignData;

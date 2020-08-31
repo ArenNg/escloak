@@ -11,7 +11,7 @@
     "minimum-stability": "dev",
     "require": {
         "php": ">=7.1",
-        "topthink/think-cache": "^2.0.6"
+        "doctrine/cache": "1.6.2"
     },
     "autoload": {
         "psr-4": {

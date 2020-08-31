@@ -1,7 +1,7 @@
 <?php
 namespace Gztango;
 
-use think\Cache;
+//use think\Cache;
 
 Class ESLoader
 {
