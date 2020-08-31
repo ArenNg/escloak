@@ -10,7 +10,7 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "php": ">=7.0",
+        "php": ">=5.6",
         "topthink/think-cache": "dev-master"
     },
     "autoload": {
