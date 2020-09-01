@@ -1,7 +1,7 @@
 <?php
 namespace Gztango;
 
-//use think\Cache;
+use Doctrine\Common\Cache\FilesystemCache;
 
 Class ESLoader
 {
@@ -13,6 +13,7 @@ Class ESLoader
     private $campaign_id;
     private $sign_key;
     private $debug;
+    private $click_tmp_id;
 //    private $campaignInfo;
     private $Campaign;
 
@@ -145,8 +146,8 @@ Class ESLoader
 
         $this->response = json_decode($this->response, true);
         $this->visitor_properties = isset($this->response['visitor']) ? $this->response['visitor'] : null;
-
-        $GLOBALS['_tg_click_tmp_id'] = $this->response['click_tmp_id'];
+        $this->click_tmp_id = $this->response['click_tmp_id'];
+//        $GLOBALS['_tg_click_tmp_id'] = $this->response['click_tmp_id'];
     }
 
     private function run_debug_functions_if_enabled()
@@ -156,11 +157,10 @@ Class ESLoader
 
     public function should_send_hybrid_page()
     {
-        if (stripos(get_SERVER_value('HTTP_USER_AGENT'), 'facebookexternalhit') !== false) {//FB bot doesn't follow meta/javascript
+        if (stripos($this->cloakFunc->get_SERVER_value('HTTP_USER_AGENT'), 'facebookexternalhit') !== false) {//FB bot doesn't follow meta/javascript
             return false;
         }
-
-        return hybrid_mode_enabled() AND !js_gathered_visitor_variables() AND !$this->debug_mode_enabled();
+        return $this->Campaign->hybrid_mode() AND !$this->cloakFunc->js_gathered_visitor_variables() AND !$this->debug_mode_enabled();
     }
 
     private function format_response_for_hybrid_mode()
@@ -169,14 +169,47 @@ Class ESLoader
             'cloak_reason' => '',
             'action'       => 'load_hybrid_page',
             'url_num'      => 1,
-            'url'          => campaign()->cloaking_action() == 'none' ? null : campaign()->safe_redirect_url(true),
+            'url'          => $this->Campaign->cloaking_action() == 'none' ? null : $this->Campaign->safe_redirect_url(true),
             'visitor'      => array(), //Not available during hybrid page construction
         );
     }
 
     public function load_hybrid_page()
     {
-        new HybridPageSender();
+        $dir = $this->cloakFunc->first_writable_directory();
+//        $cache = new FilesystemCache($dir);
+        $cloaking_id = $this->click_tmp_id;
+        $cloaking_action = $this->Campaign->cloaking_action();
+        $safe_redirect_url = $this->Campaign->safe_redirect_url(true);
+        $pass_vars = [
+            'c'  => mt_rand(10000000, 999999999), //Cache buster
+            'k'  => $this->Campaign->cli_key(),
+            'r'  => $this->cloakFunc->get_SERVER_value('HTTP_REFERER'),
+            'su' => $this->cloakFunc->current_url(),
+            'cr' => 'no_javascript'
+        ];
+        $pixel_payload = urlencode(base64_encode(json_encode($pass_vars)));
+        $safe_redirect_url = $this->add_querystring_var($safe_redirect_url);
+        $js_redirect = $this->cloakFunc->js_redirect_code($safe_redirect_url);
+        require_once $dir.'hb_'.$this->campaign_id;
+
+        switch ($cloaking_action) {
+            case 'header_redirect':
+                print "<script>" . $js_redirect . "</script>";
+                exit;
+            case 'iframe':
+                print $this->cloakFunc->fullscreen_iframe_html($safe_redirect_url);
+                exit;
+            case 'paste_html':
+
+                print $this->cloakFunc->curl_get($safe_redirect_url);
+                exit;
+            case 'none':
+//Do nothing -> the script will automatically load any HTML/PHP content appended to the end of this file
+                break;
+        }
+//        $campaignCacheData = $cache->fetch('hb_'.$this->campaign_id);
+//        new HybridPageSender();
     }
 
     public function get_visitor()
@@ -200,7 +233,6 @@ Class ESLoader
     {
         $response = $this->response;
         unset($response['visitor']);
-
         return $this->insert_additional_response_fields($response);
     }
 
@@ -208,22 +240,30 @@ Class ESLoader
     {
         $action = $this->cloakFunc->get_array_value('action', $response);
         $url = $this->cloakFunc->get_array_value('url', $response);
-
         return $this->insert_output_html_field($action, $url, $response);
     }
 
     private function insert_output_html_field($action, $url, $response)
     {
         if ($action == 'paste_html' AND $url) {
-            $html = curl_get($url);
-//            echo $html;exit;
+            $url = $this->add_querystring_var($url);
+            $html = $this->cloakFunc->curl_get($url);
             $html = $this->replaceHtml($url,$html);
-//            echo $html;exit;
             $response['output_html'] = $html;
-
         }
-
         return $response;
+    }
+
+    function add_querystring_var($url) {
+        $key = 'from_es';
+        $value = 'v1.0';
+        $url=preg_replace('/(.*)(?|&)'.$key.'=[^&]+?(&)(.*)/i','$1$2$4',$url.'&');
+        $url=substr($url,0,-1);
+        if(strpos($url,'?') === false){
+            return ($url.'?'.$key.'='.$value);
+        } else {
+            return ($url.'&'.$key.'='.$value);
+        }
     }
 
     function replaceHtml($surl,$content){

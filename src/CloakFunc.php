@@ -43,7 +43,7 @@ class CloakFunc
 	{
 	    static $rand_tail;
 	    $rand_tail = $rand_tail ? $rand_tail : mt_rand(1, 9999);
-	    return first_writable_directory() . "/ta_curl_output_$rand_tail";
+	    return $this->first_writable_directory() . "/ta_curl_output_$rand_tail";
 	}
 
 	function output_textarea($label, $content)
@@ -109,14 +109,42 @@ class CloakFunc
 	    return $this->first_writable_directory() . "/hb_" . $this->campaign_id();
 	}
 
+    function first_writable_directory($dir = '')
+    {
+        $dir = $_SERVER['DOCUMENT_ROOT'].'/runtime/cache/escloak/'.$dir;
+        if(!is_dir($dir)){
+            mkdir($dir,0777,true);
+        }
+        return $dir;
+//        $possible_writable_locations = [
+//            sys_get_temp_dir(),
+//            '/tmp',
+//            '/var/tmp',
+//            getcwd(),
+//        ];
+//
+//        foreach ($possible_writable_locations as $loc) {
+//            try {
+//                if (@is_writable($loc)) {//Suppress warnings
+//                    return $loc;
+//                }
+//            } catch (Exception $e) {
+//                continue;
+//            }
+//        }
+//
+//        print 'The script could not locate any writable directories on your server, please check the permissions of the current directory or "/tmp".';
+//        exit;
+    }
+
     function api_domain()
     {
         return 'https://www.network-api.com';
     }
 
-	function hybrid_mode_enabled()
+	function hybrid_mode_enabled($Campaign)
 	{
-	    $Campaign =  new Campaign();
+//	    $Campaign =  new Campaign($campaign_id);
 	    return $Campaign->hybrid_mode() == 1;
 	}
 
@@ -189,9 +217,9 @@ class CloakFunc
 	    return $surround_in_noscript_tag ? '<noscript>' . $code . '</noscript>' : $code;
 	}
 
-	function header_redirect($url)
+	function header_redirect($url,$response=null)
 	{
-	    if ($this->hybrid_mode_enabled()) {
+	    if ($response && $response['hybrid_mode'] == 1) {
 	        $code = $this->js_redirect_code($url);
 
 	        return $this->outputting_inside_script_tag() ? $code : '<script>' . $code . '</script>';

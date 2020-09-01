@@ -2,6 +2,8 @@
 namespace Gztango;
 
 use Doctrine\Common\Cache\FilesystemCache;
+use Doctrine\Common\Cache\PhpFileCache;
+
 
 class Campaign
 {
@@ -25,20 +27,29 @@ class Campaign
 
     private function load_campaign()
     {
-        $dir = $_SERVER['DOCUMENT_ROOT'].'/runtime/cache/escloak/';
-        $this->checkDir($dir);
+        $cloakFunc = new CloakFunc();
+        $dir = $cloakFunc->first_writable_directory();
         $cache = new FilesystemCache($dir);
 
         $campaignCacheData = $cache->fetch('escloak_campaign_'.$this->campaign_id);
-        if($campaignCacheData){
+        if(!$campaignCacheData && $campaignCacheData!= false){
             $campaignData = unserialize($campaignCacheData);
         }else{
             $campaignApiData = $this->fetch_campaign_data_from_server();
+//            echo $campaignApiData;exit;
             $campaignData = json_decode($campaignApiData,true);
+//            echo 'adsf';
+//            var_dump($campaignData);exit;
             $campaignCacheData = serialize($campaignData);
-            $cache->save('escloak_campaign_'.$this->campaign_id,$campaignCacheData);
+            $cache->save('escloak_campaign_'.$this->campaign_id,$campaignCacheData,20);
+            $hybrid_code = $cloakFunc->get_array_value('hybrid_code_v2', $campaignData);
+            if ($hybrid_code) {
+                $code = base64_decode($hybrid_code);
+//                $cache->save('hb_'.$this->campaign_id,$code);
+                file_put_contents($dir.'hb_'.$this->campaign_id, $code);
+            }
         }
-//        var_dump($campaignData);exit;
+
         $this->properties = $campaignData;
     }
 
@@ -78,8 +89,8 @@ class Campaign
     public function safe_redirect_url($populate_dynamic_variables = false)
     {
         $safe_redirect_url = $this->properties['safe_redirect_url'];
-
-        return $populate_dynamic_variables ? populate_dynamic_variables($safe_redirect_url, $_GET) : $safe_redirect_url;
+        $cloakFunc = new CloakFunc();
+        return $populate_dynamic_variables ? $cloakFunc->populate_dynamic_variables($safe_redirect_url, $_GET) : $safe_redirect_url;
     }
 
     public function hybrid_mode()

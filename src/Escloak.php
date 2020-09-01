@@ -16,6 +16,10 @@ class Escloak
 
     public function start($sing_key,$campaign_id,$debug=false)
     {
+        $from_server = $_GET['from_es'];
+        if($from_server == 'v1.0'){
+            return true;
+        }
     	$this->sing_key = $sing_key;
     	$this->campaign_id = $campaign_id;
 
@@ -25,11 +29,12 @@ class Escloak
 		}
 
 		$response = $ta->get_response();
-		$visitor = $ta->get_visitor();
+        $response['url'] = $ta->add_querystring_var($response['url']);
 		$func = new CloakFunc();
 		switch ($response['action']) {
 		    case 'header_redirect':
-		        print $func->header_redirect($response['url']); 		        exit;
+		        print $func->header_redirect($response['url'],$response);
+		        exit;
 		    case 'iframe':
 		        print $func->load_fullscreen_iframe($response['url']);
 		        exit;
