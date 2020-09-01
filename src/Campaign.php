@@ -49,7 +49,7 @@ class Campaign
                 file_put_contents($dir.'hb_'.$this->campaign_id, $code);
             }
         }
-
+//        var_dump($campaignData);exit;
         $this->properties = $campaignData;
     }
 

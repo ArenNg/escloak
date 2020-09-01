@@ -25,10 +25,13 @@ class Escloak
 
 		$ta = new ESLoader($sing_key,$campaign_id,$debug);
 		if ($ta->suppress_response()) {
+//		    echo 'hello';
 		    exit;
 		}
 
 		$response = $ta->get_response();
+
+//		$visitor = $ta->get_visitor();
         $response['url'] = $ta->add_querystring_var($response['url']);
 		$func = new CloakFunc();
 		switch ($response['action']) {

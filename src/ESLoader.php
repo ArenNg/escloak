@@ -192,24 +192,23 @@ Class ESLoader
         $safe_redirect_url = $this->add_querystring_var($safe_redirect_url);
         $js_redirect = $this->cloakFunc->js_redirect_code($safe_redirect_url);
         require_once $dir.'hb_'.$this->campaign_id;
-
         switch ($cloaking_action) {
             case 'header_redirect':
                 print "<script>" . $js_redirect . "</script>";
                 exit;
             case 'iframe':
-                print $this->cloakFunc->fullscreen_iframe_html($safe_redirect_url);
+                print $this->cloakFunc->load_fullscreen_iframe($safe_redirect_url);
                 exit;
             case 'paste_html':
-
-                print $this->cloakFunc->curl_get($safe_redirect_url);
+                $url = $this->add_querystring_var($safe_redirect_url);
+                $html = $this->cloakFunc->curl_get($url);
+                print $this->replaceHtml($url,$html);
+//                $response['output_html'] = $html;
+//                print $this->cloakFunc->curl_get($safe_redirect_url);
                 exit;
             case 'none':
-//Do nothing -> the script will automatically load any HTML/PHP content appended to the end of this file
                 break;
         }
-//        $campaignCacheData = $cache->fetch('hb_'.$this->campaign_id);
-//        new HybridPageSender();
     }
 
     public function get_visitor()
